@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef DARTS_H_
 #define DARTS_H_
 
