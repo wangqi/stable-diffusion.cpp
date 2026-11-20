@@ -1,0 +1,171 @@
+# Contributing
+
+This document collects general contribution conventions for this repository.
+
+## Before You Start
+
+Before opening a PR, please search existing PRs to avoid duplicating ongoing work.
+
+For large-scale refactors or changes with broad impact, please open an issue first to discuss the approach before submitting a PR.
+
+If you want to update a third-party dependency, please open an issue first instead of submitting a direct PR. See [Dependency Updates](#dependency-updates) for details.
+
+## Pull Requests
+
+When contributing from a fork, use a fork under your personal GitHub account and enable **Allow edits from maintainers**. This lets maintainers make follow-up fixes directly on the PR branch.
+
+PRs from organization-owned forks are automatically closed when opened or reopened because GitHub does not support this maintainer-edit option for those forks. Submit the changes from a personal fork instead. See [GitHub's documentation](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork).
+
+Keep each PR focused on one clear change. Large or overly complex PRs are harder to review and may not be merged.
+
+Do not include test code or test scripts in commits or PRs. Keep them local and report verification results in the PR description.
+
+Follow Conventional Commit-style subjects seen in history: `feat:`, `fix:`, `refactor:`, `ci:`, `docs:`, `chore:`. Keep subjects imperative and scoped.
+
+PRs should include:
+
+- What changed and why (short problem/solution summary).
+- Verification evidence when applicable (commands and key outputs).
+- Linked issue/PR context when applicable.
+- Screenshots or sample outputs for UI/visual behavior changes.
+
+## Documentation
+
+Write model and component usage guides in `docs/models/` for users. Focus on
+supported weights, setup, runnable commands, parameter meanings, output behavior,
+and practical limits such as memory requirements. Include technical details only
+when they help users choose settings or troubleshoot a problem.
+
+Put shared usage workflows and configuration in `docs/guides/`, and internal
+implementation details and development conventions in `docs/development/`.
+Keep build, Docker, and troubleshooting guides at the root of `docs/`.
+Link new documentation from [the documentation index](docs/README.md) or
+[the model index](docs/models/README.md), as appropriate. Keep supported model
+entries and their guide links in the project README.
+
+### Model Documentation
+
+Every new model or component integration must include a user guide in
+`docs/models/` in the same PR. For a variant or new task of an existing family,
+update that family's guide instead of creating a duplicate page. Add new guides
+to the model index, and update the supported-model entries and guide links in
+the project README when adding a model family or capability.
+
+Model guides should use the model name as their single top-level heading and
+start with a short description of supported tasks and compatibility requirements.
+`Model files` and `Usage` are required. Use the following sections in order,
+omitting other sections when they have no content:
+
+- `Supported variants` when variants need a separate comparison.
+- `Model files`, with component, weights/downloads, CLI option, and requirement
+  columns. Include tokenizers, projectors, connectors, downloads, conversion, and
+  required preprocessing.
+- `Usage`, with `Web UI` and `CLI` subsections where applicable. Link to the
+  server's shared Web UI guide and list compatible recipes/components. Group
+  complete CLI examples by task or variant within this section; do not add a
+  separate `Quick start` or `Examples` section. Keep API usage in its own
+  subsection when needed.
+- `Options` for model-specific settings.
+- `Notes and limitations` for input/output constraints, memory requirements,
+  and unsupported functionality.
+
+Follow the [model example conventions](docs/models/README.md#example-conventions)
+for working directories and shell syntax. Provide Windows PowerShell and
+Linux/macOS forms of executable examples, using `.\bin\Release\sd-cli.exe` and
+`./bin/sd-cli` respectively from the build directory. Use the corresponding
+server paths for Web UI startup. Keep backend-specific examples clearly labeled.
+Use multiline commands with mode and
+model components first, followed by inputs/prompts, sampling settings, dimensions,
+other model options, memory/backend options, and output/seed settings. Preserve
+checkpoint-specific values when reorganizing existing examples. Keep example
+images next to their commands, and update links when section anchors change.
+Keep shared Web UI operating instructions in `examples/server/README.md` and
+link to them from model guides. Document shared settings by linking to
+`docs/guides/`. Only describe Web UI
+recipes and capabilities that already exist; documentation cleanup alone is not
+a reason to add or change a built-in recipe.
+
+Before submitting, check download links, relative links, command paths, CLI
+options, and any recipe/component mappings against the implementation. Report
+which examples were actually run and which were only inspected in the PR's
+verification notes.
+
+Keep tensor layouts, internal class names, kernel implementation details,
+algorithm derivations, and development history out of usage guides. Keep task-specific
+profiling logs, numerical comparison procedures, and test artifacts local, and
+summarize relevant verification results in the PR description.
+
+## Application and UI Listings
+
+The [applications and UIs list](docs/ecosystem.md#applications-and-uis) only
+includes open-source projects that use `stable-diffusion.cpp` as a backend.
+Do not submit PRs to add closed-source applications or UIs.
+
+## Server Recipes
+
+Before adding or changing a built-in server recipe, read and follow the
+[built-in recipe policy](examples/server/recipes/README.md). The policy governs
+native editing, community editing LoRAs, distinct task checkpoints, external
+adapters, native components and layer-count variants. Do not add recipes solely
+for style or acceleration LoRAs, separately stored native components, or added
+or removed model layers. Explain the task, component compatibility or capability
+difference that justifies a new recipe, and verify its required components,
+feature declarations and embedded API representation.
+
+## Code Style
+
+Format code according to the repository style before submitting changes.
+
+Formatting follows `.clang-format` (Chromium base, 4-space indent, no tabs). Run `scripts/format-code.sh` or `scripts/format-code.ps1` before opening a PR. Keep C++ standard at C++17-compatible patterns used in this repo.
+
+Naming conventions:
+
+- Use `PascalCase` for class/struct/type names.
+- In `PascalCase` names, preserve common abbreviations in uppercase, for example `SD`, `API`, `HTTP`, `JSON`, `RGB`, `VAE`, `TAE`, `LoRA`, and `WebP`.
+- Use `snake_case` for functions, methods, variables, and file names unless an existing API requires a different style.
+- Use a trailing underscore for private data member names, for example `hidden_size_` or `tokenizer_`.
+- Use `.hpp` for model headers under `src/model/`, including new model headers. Do not rename these headers to `.h`. Use `.h` for other C and C++ header files.
+- Use macro-based header include guards instead of `#pragma once`.
+- Format header include guards as `__SD_{PATH}__`, where `{PATH}` is the header path in uppercase snake case without the file extension. For example, `src/sample.h` should use `__SD_SAMPLE_H__`.
+- Do not introduce anonymous namespaces in new or modified code; prefer `static` file-local functions/variables or an explicit named namespace when scoping is needed.
+- In `class`/`struct` definitions, place data members before member functions unless an existing type already clearly follows a different pattern.
+
+Some older code in the project may not fully follow the current conventions. Please do not submit PRs that only rewrite existing code to match style rules.
+
+When adding or modifying model implementations, follow the
+[model config and weight detection conventions](docs/development/model_config.md).
+
+## Tokenizer Data
+
+New model integrations must use an external `tokenizer.json` by default. Do not
+embed new vocabularies or merge tables solely for less widely used models;
+these tables increase the binary size for every user.
+
+The embedded-data allowlist is CLIP, T5/UMT5, Qwen 2/3, Mistral, and Gemma 3/4.
+Models may reuse an existing embedded tokenizer when its vocabulary and behavior
+match their text encoder. Gemma 2 and GPT-OSS require external JSON files.
+
+Adding to this allowlist requires maintainer approval, supported by the model's
+usage, reuse across models, and measured binary-size cost. Document the matching
+JSON and CLI option for models that require an external tokenizer, and fail
+initialization clearly when it is missing.
+
+## AI-Assisted Contributions
+
+AI tools may be used to assist development, but contributors are responsible for the quality and correctness of the submitted code.
+
+If any part of a contribution was generated with AI assistance, the contributor must perform a thorough human review before submitting the PR and understand every changed line.
+
+Do not list AI tools as co-authors. The human contributor is the sole responsible author of the submitted code.
+
+Please do not submit AI-generated code that you do not understand, and do not include meaningless experiments, temporary test code, or unrelated generated output in a PR.
+
+## Dependency Updates
+
+Do not submit PRs that update `ggml`. `ggml` updates are performed only after local validation by the maintainer.
+
+Other third-party dependencies are not updated unless necessary. If you want to update a dependency, please open an issue first instead of submitting a direct PR.
+
+## Security & Configuration
+
+Do not commit model weights, secrets, or local absolute paths. Keep large binaries out of git unless intentionally tracked release assets.
